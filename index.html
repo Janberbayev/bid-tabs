@@ -1,0 +1,1305 @@
+
+<!DOCTYPE html>  
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Сравнение предложений</title>
+  <style>
+    :root {
+      --bg-primary: #f7f7f8;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f7f7f8;
+      --text-primary: #202123;
+      --text-secondary: #353740;
+      --border-color: #e5e5e6;
+      --border-hover: #9ca3af;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --input-bg: #ffffff;
+      --input-border: #d1d5db;
+      --focus-color: #10a37f;
+      --highlight-bg: #d1fae5;
+      --highlight-text: #065f46;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #343541;
+      --bg-secondary: #40414f;
+      --bg-tertiary: #565869;
+      --text-primary: #ececf1;
+      --text-secondary: #c5c5d2;
+      --border-color: #565869;
+      --border-hover: #8e8ea0;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --input-bg: #40414f;
+      --input-border: #565869;
+      --focus-color: #10a37f;
+      --highlight-bg: #065f46;
+      --highlight-text: #d1fae5;
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px var(--shadow);
+      padding: 24px;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--border-hover);
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 24px 0;
+      text-align: center;
+    }
+
+    table, th, td, input, select, textarea {
+      font-size: 13px;
+    }
+
+    /* Меньший шрифт для колонок с ценой */
+    .price-cell {
+      font-size: 11px !important;
+    }
+
+    /* Меньший шрифт и padding для input цены */
+    .price-input {
+      font-size: 11px !important;
+      padding: 2px 4px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 2px 4px;
+      text-align: center;
+      vertical-align: middle;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-primary);
+    }
+
+    th {
+      background-color: var(--bg-tertiary);
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    /* Разрешаем отображение полного содержимого для ячеек с текстовыми данными */
+    td input[type="text"],
+    td input[type="date"],
+    td select,
+    td textarea {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    /* Для ячеек с текстом убираем ограничения на overflow */
+    td.text-cell {
+      overflow: visible !important;
+      white-space: normal !important;
+    }
+    
+    /* Все input и select внутри ячеек должны показывать полное содержимое */
+    td input,
+    td select,
+    td textarea,
+    thead td input,
+    thead td select,
+    thead td textarea {
+      overflow: visible !important;
+      white-space: normal !important;
+    }
+    
+    /* Убираем ограничения overflow для ячеек, содержащих элементы формы */
+    td.text-cell,
+    thead td {
+      overflow: visible !important;
+      white-space: normal !important;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 2px 4px;
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      background-color: var(--input-bg);
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--focus-color);
+      box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.1);
+    }
+
+    input:hover, select:hover, textarea:hover {
+      border-color: var(--border-hover);
+    }
+
+    input.qty {
+      width: 55px;
+      padding: 2px 4px;
+    }
+
+    select.unit {
+      width: 70px;
+      padding: 2px 4px;
+    }
+
+    /* Match textarea height to price cells */
+    textarea[placeholder*="Код и наименования"] {
+      padding: 2px 4px;
+      min-height: auto;
+      height: auto;
+      line-height: 1.2;
+    }
+
+    input[type="number"], .sum {
+      min-width: 60px;
+    }
+
+    tfoot td {
+      font-weight: 600;
+      background-color: var(--bg-tertiary);
+      border-top: 2px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn {
+      margin: 8px 6px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn:hover {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .highlight {
+      background-color: var(--highlight-bg) !important;
+      color: var(--highlight-text) !important;
+      font-weight: 600;
+    }
+
+    textarea {
+      overflow: hidden;
+      resize: none;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+        padding: 0;
+        border-radius: 0;
+      }
+      .btn, button {
+        display: none;
+      }
+      input, select, textarea {
+        border: none;
+        background: transparent;
+      }
+      body {
+        zoom: 80%;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      
+      /* Более темные границы таблицы для PDF */
+      table {
+        border: 2px solid #000 !important;
+      }
+      
+      th, td {
+        border: 1px solid #333 !important;
+        border-collapse: collapse !important;
+      }
+      
+      th {
+        border-bottom: 2px solid #000 !important;
+        border-top: 1px solid #333 !important;
+        border-left: 1px solid #333 !important;
+        border-right: 1px solid #333 !important;
+      }
+      
+      tfoot td {
+        border-top: 2px solid #000 !important;
+        border-bottom: 1px solid #333 !important;
+        border-left: 1px solid #333 !important;
+        border-right: 1px solid #333 !important;
+      }
+    }
+
+    button {
+      background: #10a37f;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 8px 6px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    button:hover {
+      background: #0d8f6e;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .green { 
+      background: #10a37f;
+    }
+    .green:hover {
+      background: #0d8f6e;
+    }
+
+    .red { 
+      background: #ef4444;
+    }
+    .red:hover {
+      background: #dc2626;
+    }
+
+    .orange { 
+      background: #f59e0b;
+    }
+    .orange:hover {
+      background: #d97706;
+    }
+
+    .purple { 
+      background: #8b5cf6;
+    }
+    .purple:hover {
+      background: #7c3aed;
+    }
+
+
+    .print-area {
+      background-color: var(--bg-tertiary) !important;
+      border-bottom: 2px solid var(--border-color) !important;
+    }
+
+    input[type="text"][placeholder*="Номер тендера"] {
+      border: none;
+      border-bottom: 2px solid var(--input-border);
+      border-radius: 0;
+      padding: 8px 0;
+      font-size: 14px;
+      background: transparent;
+      margin-bottom: 20px;
+      width: 100%;
+      color: var(--text-primary);
+    }
+
+    input[type="text"][placeholder*="Номер тендера"]:focus {
+      border-bottom-color: var(--focus-color);
+      outline: none;
+    }
+
+    #commentsSection {
+      background: var(--bg-tertiary);
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    #commentsSection h3 {
+      color: var(--text-primary);
+      margin-top: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .footer {
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+  <span id="themeIcon">🌙</span>
+  <span id="themeText">Темная тема</span>
+</button>
+
+<div class="container-fluid">
+<div style="margin-bottom: 10px; text-align: center;">
+	<h2>Сравнительный анализ цен</h2>
+</div>
+
+<div style="margin-bottom: 1 px;">
+  <input type="text" placeholder="Номер тендера №QTPA_CBE_" style="border: none; border-bottom: 1px solid #000;">
+</div>
+
+<div style="overflow-x: auto;">
+  <table id="compareTable">
+    <thead class="print-area">
+      <tr id="headerRow1">
+        <th rowspan="6" style="width: 500px;">Товар / Услуга</th>
+        <th rowspan="6" style="width: 60px;">Кол-во</th>
+        <th rowspan="6" style="width: 60px;">Ед. изм.</th>
+        <th colspan="2">Компания 1</th>
+        <th colspan="2">Компания 2</th>
+      </tr>
+      <tr id="headerRow2">
+        <td colspan="2"><textarea placeholder="Название компании 1" oninput="autoResize(this)" style="text-align: center;"></textarea></td>
+        <td colspan="2"><textarea placeholder="Название компании 2" oninput="autoResize(this)" style="text-align: center;"></textarea></td>
+      </tr>
+      <tr id="headerRow4">
+        <td colspan="2"><input type="text" placeholder="Условия поставки"></td>
+        <td colspan="2"><input type="text" placeholder="Условия поставки"></td>
+      </tr>
+      <tr id="headerRow5">
+        <td colspan="2"><input type="text" placeholder="Срок поставки"></td>
+        <td colspan="2"><input type="text" placeholder="Срок поставки"></td>
+      </tr>
+      <tr id="headerRow6">
+        <td colspan="2"><input type="text" placeholder="Условия оплаты"></td>
+        <td colspan="2"><input type="text" placeholder="Условия оплаты"></td>
+      </tr>
+
+      <tr id="currencyRow">
+        <td colspan="2">
+          <select>
+            <option>KZT</option>
+            <option>USD</option>
+            <option>EUR</option>
+            <option>RUB</option>
+            <option>GBP</option>
+          </select>
+        </td>
+        <td colspan="2">
+          <select>
+            <option>KZT</option>
+            <option>USD</option>
+            <option>EUR</option>
+            <option>RUB</option>
+            <option>GBP</option>
+          </select>
+        </td>
+      </tr>
+      <tr id="priceHeaderRow">
+        <th></th>
+        <th></th>
+        <th></th>
+        <th class="price-cell">Цена</th><th class="price-cell">Сумма</th>
+        <th class="price-cell">Цена</th><th class="price-cell">Сумма</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr>
+        <td><textarea placeholder="Код и наименования товара / Услуга" oninput="autoResize(this)"></textarea></td>
+        <td><input type="number" min="0" value="1" onchange="recalculate(this)" class="qty"></td>
+        <td>
+          <select class="unit">
+            <option>шт.</option>
+            <option>услуга</option>
+	          <option>рейс</option>
+            <option>упаковка</option>
+            <option>рулон</option>
+            <option>кг</option>
+            <option>литр</option>
+            <option>грамм</option>
+            <option>метр</option>
+            <option>кв.метр</option>
+            <option>куб.метр</option>
+            <option>см.</option>
+            <option>кв.см</option>
+            <option>куб.см.</option>
+            <option>пара</option>
+          </select>
+        </td>
+        <td><input type="number" min="0" onchange="recalculate(this)" class="price-input"></td>
+        <td class="sum price-cell">0</td>
+        <td><input type="number" min="0" onchange="recalculate(this)" class="price-input"></td>
+        <td class="sum price-cell">0</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr id="totalsRow">
+        <td colspan="3">Итоговая сумма</td>
+        <td>Компания 1</td>
+        <td id="total1">0</td>
+        <td>Компания 2</td>
+        <td id="total2">0</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<button class="btn" onclick="addRow()">➕ Добавить позицию</button>
+<button class="btn green" onclick="addCompany()">➕ Добавить компанию</button>
+<button class="btn red" onclick="window.print()">🖨️ Печать / PDF</button>
+<button class="btn orange" onclick="toggleComments()">📝 Комментарий</button>
+<button class="btn purple" id="historyBtn" onclick="toggleHistory()">📜 История товара</button>
+<button class="btn" style="background: #28a745;" onclick="exportToExcel()">📊 Сохранить в Excel</button>
+
+<div id="commentsSection" style="display:none; margin-top: 20px;">
+  <h3>Комментарии</h3>
+  <textarea oninput="autoResize(this)" placeholder="Введите комментарии..." style="width: 100%; padding: 8px;"></textarea>
+</div>
+
+<div style="margin-top: 40px;">
+  <h3>Подписи:</h3>
+  <div style="display: flex; gap: 40px; flex-wrap: wrap; margin-top: 20px;">
+    <div style="flex: 1; min-width: 250px;">
+      <label>Подготовил:</label>
+      <input type="text" style="width: 100%; border: none; border-bottom: 1px solid #000;">
+    </div>
+    <div style="flex: 1; min-width: 250px;">
+      <label>Проверил:</label>
+      <input type="text" style="width: 100%; border: none; border-bottom: 1px solid #000;">
+    </div>
+    <div style="flex: 1; min-width: 250px;">
+      <label>Согласовал:</label>
+      <input type="text" style="width: 100%; border: none; border-bottom: 1px solid #000;">
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script>
+  let companyCount = 2;
+  let historyVisible = false;
+
+  // Theme toggle functionality
+  function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    updateThemeButton(newTheme);
+  }
+
+  function updateThemeButton(theme) {
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    
+    if (theme === 'dark') {
+      themeIcon.textContent = '☀️';
+      themeText.textContent = 'Светлая тема';
+    } else {
+      themeIcon.textContent = '🌙';
+      themeText.textContent = 'Темная тема';
+    }
+  }
+
+  // Load saved theme on page load
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeButton(savedTheme);
+  });
+
+  function addCompany() {
+    if (historyVisible) {
+      alert("Нельзя добавить новую компанию после включения истории товара.");
+      return;
+    }
+
+    companyCount++;
+
+    document.getElementById('headerRow1').insertAdjacentHTML('beforeend', `<th colspan="2">Компания ${companyCount}</th>`);
+    document.getElementById('headerRow2').insertAdjacentHTML('beforeend', `<td colspan="2"><textarea placeholder="Название компании ${companyCount}" oninput="autoResize(this)" style="text-align: center;"></textarea></td>`);
+    document.getElementById('headerRow4').insertAdjacentHTML('beforeend', `<td colspan="2"><input type="text" placeholder="Условия поставки"></td>`);
+    document.getElementById('headerRow5').insertAdjacentHTML('beforeend', `<td colspan="2"><input type="text" placeholder="Срок поставки"></td>`);
+    document.getElementById('headerRow6').insertAdjacentHTML('beforeend', `<td colspan="2"><input type="text" placeholder="Условия оплаты"></td>`);
+    document.getElementById('currencyRow').insertAdjacentHTML('beforeend', `
+      <td colspan="2">
+        <select>
+          <option>KZT</option>
+          <option>USD</option>
+          <option>EUR</option>
+          <option>RUB</option>
+          <option>GBP</option>
+        </select>
+      </td>
+    `);
+    document.getElementById('priceHeaderRow').insertAdjacentHTML('beforeend', `<th class="price-cell">Цена</th><th class="price-cell">Сумма</th>`);
+
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+      row.insertAdjacentHTML('beforeend', `
+        <td><input type="number" min="0" onchange="recalculate(this)" class="price-input"></td>
+        <td class="sum price-cell">0</td>
+      `);
+    });
+
+    document.getElementById('totalsRow').insertAdjacentHTML('beforeend', `<td>Компания ${companyCount}</td><td id="total${companyCount}">0</td>`);
+    
+    // Re-highlight all rows after adding a company
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+      highlightMinimumInRow(row);
+    });
+    // Highlight minimum total
+    highlightMinimumTotal();
+  }
+
+
+  function addRow() {
+    const tbody = document.getElementById('tableBody');
+    const row = document.createElement('tr');
+
+    // Use the same "Ед. изм." options as the first row (single source of truth)
+    const existingUnitSelect = tbody.querySelector('select.unit');
+    const unitSelectHTML = existingUnitSelect
+      ? existingUnitSelect.outerHTML
+      : `
+        <select class="unit">
+          <option>шт.</option>
+          <option>услуга</option>
+          <option>рейс</option>
+          <option>упаковка</option>
+          <option>рулон</option>
+          <option>кг</option>
+          <option>литр</option>
+          <option>грамм</option>
+          <option>метр</option>
+          <option>кв.метр</option>
+          <option>куб.метр</option>
+          <option>см.</option>
+          <option>кв.см</option>
+          <option>куб.см.</option>
+          <option>пара</option>
+        </select>
+      `;
+
+    let html = `
+      <td><textarea placeholder="Код и наименования товара / Услуга" oninput="autoResize(this)"></textarea></td>
+      <td><input type="number" min="0" value="1" onchange="recalculate(this)" class="qty"></td>
+      <td>
+        ${unitSelectHTML}
+      </td>
+    `;
+
+    for (let i = 0; i < companyCount; i++) {
+      html += `
+        <td><input type="number" min="0" onchange="recalculate(this)" class="price-input"></td>
+        <td class="sum price-cell">0</td>
+      `;
+    }
+
+    row.innerHTML = html;
+    tbody.appendChild(row);
+
+    if (historyVisible) addHistoryCellsToRow(row);
+  }
+
+  function highlightMinimumInRow(row) {
+    // Remove all highlights first
+    for (let i = 0; i < companyCount; i++) {
+      const sumCell = row.cells[4 + i * 2];
+      if (sumCell) {
+        sumCell.classList.remove('highlight');
+      }
+    }
+    
+    // Find minimum value
+    let minValue = Infinity;
+    let minIndex = -1;
+    const values = [];
+    
+    for (let i = 0; i < companyCount; i++) {
+      const sumCell = row.cells[4 + i * 2];
+      if (sumCell) {
+        const text = sumCell.textContent.trim();
+        const val = parseFloat(text.replace(/\s/g, '').replace(',', '.')) || 0;
+        values.push({ value: val, index: i, cell: sumCell });
+        
+        if (val > 0 && val < minValue) {
+          minValue = val;
+          minIndex = i;
+        }
+      }
+    }
+    
+    // Highlight minimum (only if there's at least one non-zero value)
+    if (minIndex >= 0 && minValue < Infinity) {
+      // Check if there are multiple minimums
+      const minValues = values.filter(v => v.value === minValue && v.value > 0);
+      minValues.forEach(item => {
+        item.cell.classList.add('highlight');
+      });
+    }
+  }
+
+  function highlightMinimumTotal() {
+    const totalsRow = document.getElementById('totalsRow');
+    if (!totalsRow) return;
+    
+    // Remove all highlights from total cells first
+    for (let i = 0; i < companyCount; i++) {
+      const totalCell = document.getElementById(`total${i + 1}`);
+      if (totalCell) {
+        totalCell.classList.remove('highlight');
+      }
+    }
+    
+    // Find minimum total value
+    let minValue = Infinity;
+    let minIndex = -1;
+    const values = [];
+    
+    for (let i = 0; i < companyCount; i++) {
+      const totalCell = document.getElementById(`total${i + 1}`);
+      if (totalCell) {
+        const text = totalCell.textContent.trim();
+        const val = parseFloat(text.replace(/\s/g, '').replace(',', '.')) || 0;
+        values.push({ value: val, index: i, cell: totalCell });
+        
+        if (val > 0 && val < minValue) {
+          minValue = val;
+          minIndex = i;
+        }
+      }
+    }
+    
+    // Highlight minimum (only if there's at least one non-zero value)
+    if (minIndex >= 0 && minValue < Infinity) {
+      // Check if there are multiple minimums
+      const minValues = values.filter(v => v.value === minValue && v.value > 0);
+      minValues.forEach(item => {
+        item.cell.classList.add('highlight');
+      });
+    }
+  }
+
+  function recalculate(input) {
+    const row = input.closest('tr');
+    const qty = parseFloat(row.querySelector('input.qty').value) || 0;
+
+    for (let i = 0; i < companyCount; i++) {
+      const priceInput = row.cells[3 + i * 2].querySelector('input');
+      const price = parseFloat(priceInput?.value) || 0;
+      const sum = price * qty;
+      row.cells[4 + i * 2].textContent = sum.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Highlight minimum in this row
+    highlightMinimumInRow(row);
+
+    for (let i = 0; i < companyCount; i++) {
+      let total = 0;
+      document.querySelectorAll('#tableBody tr').forEach(r => {
+        const sumCell = r.cells[4 + i * 2];
+        // Убираем пробелы и заменяем запятую на точку для корректного парсинга
+        const val = parseFloat(sumCell.textContent.replace(/\s/g, '').replace(',', '.')) || 0;
+        total += val;
+      });
+      const totalCell = document.getElementById(`total${i + 1}`);
+      if (totalCell) {
+        totalCell.textContent = total.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+    }
+    
+    // Highlight minimum total
+    highlightMinimumTotal();
+  }
+
+  function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  }
+
+  function toggleComments() {
+    const comments = document.getElementById('commentsSection');
+    comments.style.display = comments.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function addHistoryCellsToRow(row) {
+    const historyInputs = [
+      { type: 'number', placeholder: '' },
+      { tag: 'select', options: ['KZT', 'USD', 'EUR', 'RUB', 'GBP'] },
+      { type: 'text', placeholder: '' },
+      { type: 'date', placeholder: '' },
+      { type: 'text', placeholder: '' }
+    ];
+
+    historyInputs.forEach((input, index) => {
+      const td = document.createElement('td');
+      td.classList.add('price-cell');
+      // Добавляем класс text-cell для ячеек с текстом (все кроме первой с числом)
+      if (index > 0) {
+        td.classList.add('text-cell');
+      }
+      
+      // Устанавливаем минимальную ширину для колонок "Валюта" (index 1) и "Поставщик" (index 4)
+      if (index === 1) {
+        // Колонка "Валюта"
+        td.style.minWidth = '80px';
+        td.style.width = '80px';
+      } else if (index === 4) {
+        // Колонка "Поставщик"
+        td.style.minWidth = '120px';
+        td.style.width = '120px';
+      }
+      
+      let el;
+      if (input.tag === 'select') {
+        el = document.createElement('select');
+        input.options.forEach(opt => {
+          const option = document.createElement('option');
+          option.value = opt;
+          option.textContent = opt;
+          el.appendChild(option);
+        });
+        el.style.fontSize = '11px';
+        el.style.padding = '2px 4px';
+      } else {
+        el = document.createElement('input');
+        el.type = input.type;
+        el.placeholder = input.placeholder;
+        el.style.fontSize = '11px';
+        el.style.padding = '2px 4px';
+      }
+      el.style.width = '100%';
+      el.style.boxSizing = 'border-box';
+      td.appendChild(el);
+      row.appendChild(td);
+    });
+  }
+
+  function toggleHistory() {
+    const historyBtn = document.getElementById('historyBtn');
+    const priceHeaderRow = document.getElementById('priceHeaderRow');
+    const tableBodyRows = document.querySelectorAll('#tableBody tr');
+    const totalsRow = document.getElementById('totalsRow');
+
+    if (!historyVisible) {
+      // Добавляем заголовки истории
+      const headers = ['Цена', 'Валюта', 'Номер заказа', 'Дата', 'Поставщик'];
+
+      headers.forEach((header, index) => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        th.classList.add('price-cell');
+        
+        // Устанавливаем минимальную ширину для колонок "Валюта" (index 1) и "Поставщик" (index 4)
+        if (index === 1) {
+          // Колонка "Валюта"
+          th.style.minWidth = '80px';
+          th.style.width = '80px';
+        } else if (index === 4) {
+          // Колонка "Поставщик"
+          th.style.minWidth = '120px';
+          th.style.width = '120px';
+        }
+        
+        priceHeaderRow.appendChild(th);
+      });
+
+      // Добавляем ячейки в каждую строку
+      tableBodyRows.forEach(row => {
+        addHistoryCellsToRow(row);
+      });
+
+      // Добавляем пустые ячейки в итоговую строку
+      for (let i = 0; i < headers.length; i++) {
+        const td = document.createElement('td');
+        // Устанавливаем минимальную ширину для колонок "Валюта" (index 1) и "Поставщик" (index 4)
+        if (i === 1) {
+          td.style.minWidth = '80px';
+          td.style.width = '80px';
+        } else if (i === 4) {
+          td.style.minWidth = '120px';
+          td.style.width = '120px';
+        }
+        totalsRow.appendChild(td);
+      }
+
+      historyVisible = true;
+      historyBtn.textContent = '❌ Убрать историю товара';
+    } else {
+      // Убираем историю — удаляем последние 5 ячеек из каждой строки и заголовка
+      for (let i = 0; i < 5; i++) {
+        priceHeaderRow.lastElementChild.remove();
+      }
+
+      tableBodyRows.forEach(row => {
+        for (let i = 0; i < 5; i++) {
+          row.lastElementChild.remove();
+        }
+      });
+
+      for (let i = 0; i < 5; i++) {
+        totalsRow.lastElementChild.remove();
+      }
+
+      historyVisible = false;
+      historyBtn.textContent = '📜 История товара';
+    }
+  }
+
+  // Инициализация авторазмера textarea в первой строке при загрузке
+  window.onload = () => {
+    document.querySelectorAll('textarea').forEach(autoResize);
+    // Highlight minimum values in all rows
+    document.querySelectorAll('#tableBody tr').forEach(row => {
+      highlightMinimumInRow(row);
+    });
+    // Highlight minimum total
+    highlightMinimumTotal();
+  }
+
+  async function exportToExcel() {
+    try {
+      // Check if ExcelJS is loaded
+      if (typeof ExcelJS === 'undefined') {
+        alert('Библиотека ExcelJS не загружена. Пожалуйста, обновите страницу.');
+        return;
+      }
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Сравнение предложений');
+
+      // Get logo from the page
+      const logoImg = document.querySelector('img[src^="data:image"]');
+      if (logoImg) {
+        try {
+          const logoBase64 = logoImg.src.split(',')[1];
+          const logoBuffer = Uint8Array.from(atob(logoBase64), c => c.charCodeAt(0));
+          const imageId = workbook.addImage({
+            buffer: logoBuffer,
+            extension: 'png',
+          });
+          
+          // Add logo to worksheet (row 1, column A)
+          worksheet.addImage(imageId, {
+            tl: { col: 0, row: 0 },
+            ext: { width: 200, height: 70 }
+          });
+        } catch (imgError) {
+          console.warn('Could not add logo image:', imgError);
+        }
+      }
+
+      // Get table data
+      const table = document.getElementById('compareTable');
+      let excelRow = 3; // Start after logo (row 1-2 for logo)
+
+      // Process header rows - need to build a 2D grid to handle rowspan/colspan properly
+      const thead = table.querySelector('thead');
+      if (thead) {
+        const headerTrs = thead.querySelectorAll('tr');
+        // Определяем максимальное количество колонок динамически,
+        // чтобы корректно обрабатывать добавленные компании и историю
+        let maxCols = 0;
+        headerTrs.forEach(tr => {
+          let count = 0;
+          tr.querySelectorAll('th, td').forEach(cell => {
+            const colspan = parseInt(cell.getAttribute('colspan') || 1);
+            count += colspan;
+          });
+          if (count > maxCols) maxCols = count;
+        });
+        const headerGrid = []; // [row][col] = {value, rowspan, colspan, cell}
+        
+        // Initialize grid
+        for (let r = 0; r < headerTrs.length; r++) {
+          headerGrid[r] = [];
+          for (let c = 0; c < maxCols; c++) {
+            headerGrid[r][c] = null;
+          }
+        }
+        
+        // Fill grid with cell data
+        headerTrs.forEach((tr, trIdx) => {
+          let colIdx = 0;
+          tr.querySelectorAll('th, td').forEach(cell => {
+            // Find next available column in this row
+            while (colIdx < maxCols && headerGrid[trIdx][colIdx] !== null) {
+              colIdx++;
+            }
+            
+            let cellValue = '';
+            const input = cell.querySelector('input, select, textarea');
+            
+            if (input) {
+              if (input.tagName === 'SELECT') {
+                cellValue = input.options[input.selectedIndex]?.text || '';
+              } else {
+                cellValue = input.value || '';
+              }
+            } else {
+              cellValue = cell.textContent.trim();
+            }
+            
+            const rowspan = parseInt(cell.getAttribute('rowspan') || 1);
+            const colspan = parseInt(cell.getAttribute('colspan') || 1);
+            
+            // Mark all cells in this span as occupied
+            for (let r = trIdx; r < trIdx + rowspan && r < headerTrs.length; r++) {
+              for (let c = colIdx; c < colIdx + colspan && c < maxCols; c++) {
+                if (r === trIdx && c === colIdx) {
+                  // Main cell
+                  headerGrid[r][c] = {
+                    value: cellValue,
+                    rowspan: rowspan,
+                    colspan: colspan,
+                    cell: cell,
+                    tr: tr
+                  };
+                } else {
+                  // Occupied by span
+                  headerGrid[r][c] = { occupied: true };
+                }
+              }
+            }
+            
+            colIdx += colspan;
+          });
+        });
+        
+        // Write grid to Excel
+        let currentExcelRow = excelRow;
+        headerGrid.forEach((row, rowIdx) => {
+          const excelRowObj = worksheet.getRow(currentExcelRow);
+          
+          row.forEach((cellData, colIdx) => {
+            if (cellData && !cellData.occupied && cellData.value !== undefined) {
+              const cellObj = excelRowObj.getCell(colIdx + 1);
+              cellObj.value = cellData.value;
+              
+              // Merge if needed
+              if (cellData.rowspan > 1 || cellData.colspan > 1) {
+                try {
+                  worksheet.mergeCells(
+                    currentExcelRow, colIdx + 1,
+                    currentExcelRow + cellData.rowspan - 1,
+                    colIdx + cellData.colspan
+                  );
+                } catch (e) {
+                  // Ignore merge errors
+                }
+              }
+              
+              // Оформляем все ячейки заголовка как header, чтобы Excel выглядел как HTML-таблица
+              cellObj.font = { bold: true };
+              cellObj.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF9FB8E3' }
+              };
+              cellObj.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+              
+              // Add borders
+              for (let r = currentExcelRow; r < currentExcelRow + cellData.rowspan; r++) {
+                for (let c = colIdx; c < colIdx + cellData.colspan; c++) {
+                  const borderCell = worksheet.getRow(r).getCell(c + 1);
+                  borderCell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                  };
+                }
+              }
+            }
+          });
+          
+          currentExcelRow++;
+        });
+        
+        excelRow = currentExcelRow;
+      }
+
+      // Process body rows
+      const tbody = table.querySelector('tbody');
+      const firstDataRow = excelRow; // Remember first data row for totals
+      if (tbody) {
+        tbody.querySelectorAll('tr').forEach(tr => {
+          const row = worksheet.getRow(excelRow);
+          let col = 0;
+          
+          tr.querySelectorAll('td').forEach(cell => {
+            let cellValue = '';
+            const input = cell.querySelector('input, select, textarea');
+            const cellObj = row.getCell(col + 1);
+            
+            if (input) {
+              if (input.tagName === 'SELECT') {
+                cellValue = input.options[input.selectedIndex]?.text || '';
+                cellObj.value = cellValue;
+              } else if (input.type === 'number') {
+                const numValue = parseFloat(input.value);
+                if (!isNaN(numValue)) {
+                  cellValue = numValue;
+                  // Format numbers with 2 decimal places
+                  cellObj.value = numValue;
+                  cellObj.numFmt = '#,##0.00';
+                } else {
+                  cellObj.value = '';
+                }
+              } else {
+                cellValue = input.value || '';
+                cellObj.value = cellValue;
+              }
+            } else {
+              // Handle sum cells - create formula instead of value
+              if (cell.classList.contains('sum')) {
+                // Sum cells are: col 4, 6, 8, etc. (after: товар=0, кол-во=1, ед.изм=2, цена1=3, сумма1=4, цена2=5, сумма2=6...)
+                // Formula: количество (col 1, Excel col B) * цена (col 3, 5, 7... Excel col D, F, H...)
+                // For company 1: col 4 (sum) = col 1 (qty) * col 3 (price) = B{row} * D{row}
+                // For company 2: col 6 (sum) = col 1 (qty) * col 5 (price) = B{row} * F{row}
+                
+                // Determine which company this sum belongs to
+                // col 4 = company 1, col 6 = company 2, col 8 = company 3, etc.
+                if (col >= 4 && (col - 4) % 2 === 0) {
+                  // This is a sum cell
+                  const companyIndex = (col - 4) / 2; // 0 for company 1, 1 for company 2, etc.
+                  const qtyCol = 'B'; // Column B (quantity, col index 1)
+                  const priceColIndex = 3 + companyIndex * 2; // 3, 5, 7... (price columns)
+                  const priceCol = String.fromCharCode(65 + priceColIndex); // D=68, F=70, H=72, etc.
+                  const formula = `=${qtyCol}${excelRow}*${priceCol}${excelRow}`;
+                  cellObj.value = { formula: formula };
+                  cellObj.numFmt = '#,##0.00';
+                } else {
+                  // Fallback to text value
+                  const text = cell.textContent.trim();
+                  cellObj.value = text;
+                }
+              } else {
+                cellValue = cell.textContent.trim();
+                cellObj.value = cellValue;
+              }
+            }
+            
+            // Add borders
+            cellObj.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            };
+            
+            // Apply green highlight if cell has highlight class
+            if (cell.classList.contains('highlight')) {
+              cellObj.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF90EE90' } // Light green
+              };
+            }
+            
+            col++;
+          });
+          
+          excelRow++;
+        });
+      }
+
+      // Process footer rows
+      const tfoot = table.querySelector('tfoot');
+      const lastDataRow = excelRow - 1; // Last row with data
+      if (tfoot) {
+        tfoot.querySelectorAll('tr').forEach(tr => {
+          const row = worksheet.getRow(excelRow);
+          let col = 0;
+          
+          tr.querySelectorAll('td').forEach(cell => {
+            const text = cell.textContent.trim();
+            const colspan = parseInt(cell.getAttribute('colspan') || 1);
+            const cellObj = row.getCell(col + 1);
+            
+            // Check if this is a total cell (has id starting with "total")
+            const totalId = cell.id;
+            if (totalId && totalId.startsWith('total') && firstDataRow <= lastDataRow) {
+              // Extract company number from id (e.g., "total1" -> company 1)
+              const companyNum = parseInt(totalId.replace('total', ''));
+              if (!isNaN(companyNum) && companyNum > 0) {
+                // Sum column for company N: 
+                // Company 1: column E (Excel col 5, index 4) = sum of column E
+                // Company 2: column G (Excel col 7, index 6) = sum of column G
+                // Company N: column index = 4 + (N-1)*2
+                const sumColIndex = 4 + (companyNum - 1) * 2;
+                const sumColLetter = String.fromCharCode(65 + sumColIndex); // A=65, E=69, G=71, etc.
+                const formula = `=SUM(${sumColLetter}${firstDataRow}:${sumColLetter}${lastDataRow})`;
+                cellObj.value = { formula: formula };
+                cellObj.numFmt = '#,##0.00';
+              } else {
+                cellObj.value = text;
+              }
+            } else {
+              // Check if it's a number (total) - fallback
+              const numMatch = text.match(/[\d\s,]+\.?\d*/);
+              if (numMatch && text.match(/\d/)) {
+                const numValue = parseFloat(text.replace(/\s/g, '').replace(',', '.'));
+                if (!isNaN(numValue)) {
+                  cellObj.value = numValue;
+                  cellObj.numFmt = '#,##0.00';
+                } else {
+                  cellObj.value = text;
+                }
+              } else {
+                cellObj.value = text;
+              }
+            }
+            
+            // Merge cells if colspan > 1
+            if (colspan > 1) {
+              try {
+                worksheet.mergeCells(excelRow, col + 1, excelRow, col + colspan);
+              } catch (e) {
+                // Ignore merge errors
+              }
+            }
+            
+            cellObj.font = { bold: true };
+            cellObj.alignment = { horizontal: 'center', vertical: 'middle' };
+            
+            // Apply green highlight if cell has highlight class (for minimum total)
+            if (cell.classList.contains('highlight')) {
+              cellObj.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF90EE90' } // Light green
+              };
+            }
+            
+            // Add borders to all cells in the colspan
+            for (let c = col; c < col + colspan; c++) {
+              const borderCell = row.getCell(c + 1);
+              borderCell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+              };
+            }
+            
+            col += colspan;
+          });
+          
+          excelRow++;
+        });
+      }
+
+      // Auto-fit columns
+      worksheet.columns.forEach((column, index) => {
+        let maxLength = 10;
+        column.eachCell({ includeEmpty: true }, cell => {
+          const value = cell.value ? cell.value.toString() : '';
+          if (value.length > maxLength) {
+            maxLength = value.length;
+          }
+        });
+        column.width = Math.min(Math.max(maxLength + 2, 12), 50);
+      });
+
+      // Generate filename with current date
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const filename = `Сравнение_предложений_${dateStr}.xlsx`;
+
+      // Save file
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Ошибка при экспорте в Excel: ' + error.message);
+    }
+  }
+</script>
+
+<footer class="footer">This App is developed by JBV</footer>
+
+</div>
+</body>
+</html>
